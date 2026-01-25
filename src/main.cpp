@@ -15,6 +15,7 @@ void print_help(const char* program_name) {
     printf("  apt       - Debian/Ubuntu package manager\n");
     printf("  brew      - Homebrew (macOS/Linux)\n");
     printf("  dnf       - Fedora/RHEL package manager\n");
+    printf("  nix       - Nix/NixOS package manager\n");
     printf("  pacman    - Official Arch Linux repos only\n");
     printf("  paru      - AUR helper (includes official repos + AUR)\n");
     printf("  xbps      - Void Linux package manager\n");

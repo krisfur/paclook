@@ -10,6 +10,7 @@ A universal interactive package CLI search tool.
 - **apt** - Debian/Ubuntu package manager
 - **brew** - Homebrew (macOS/Linux)
 - **dnf** - Fedora/RHEL package manager
+- **nix** - Nix/NixOS package manager
 - **pacman** - Official Arch Linux repos
 - **paru** - AUR helper (official repos + AUR)
 - **xbps** - Void Linux package manager
@@ -18,6 +19,8 @@ A universal interactive package CLI search tool.
 
 
 More providers can be added in a modular manner.
+
+> NOTE: On some systems if you have not used your package manager in a while (or ever) the first search might take some time as your package manager will update its own cache.
 
 ## Building from source
 
@@ -71,6 +74,7 @@ Then run the docker testing scripts to start an interactive session with `pacloo
 ./docker/test.sh arch      # Arch Linux (pacman, paru, yay)
 ./docker/test.sh fedora    # Fedora (dnf)
 ./docker/test.sh homebrew  # Linuxbrew (brew)
+./docker/test.sh nixos     # NixOS (nix)
 ./docker/test.sh opensuse  # openSUSE (zypper)
 ./docker/test.sh ubuntu    # Ubuntu (apt)
 ./docker/test.sh void      # Void Linux (xbps)

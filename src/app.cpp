@@ -7,6 +7,7 @@
 #include "providers/dnf.hpp"
 #include "providers/apk.hpp"
 #include "providers/zypper.hpp"
+#include "providers/nix.hpp"
 #include "providers/brew.hpp"
 #include <algorithm>
 #include <sstream>
@@ -31,6 +32,8 @@ ProviderPtr create_provider(const std::string& name) {
         return std::make_unique<ApkProvider>();
     } else if (name == "zypper") {
         return std::make_unique<ZypperProvider>();
+    } else if (name == "nix") {
+        return std::make_unique<NixProvider>();
     } else if (name == "brew") {
         return std::make_unique<BrewProvider>();
     }
@@ -79,6 +82,11 @@ std::vector<std::string> get_available_providers() {
     auto zypper = std::make_unique<ZypperProvider>();
     if (zypper->is_available()) {
         available.push_back("zypper");
+    }
+
+    auto nix = std::make_unique<NixProvider>();
+    if (nix->is_available()) {
+        available.push_back("nix");
     }
 
     auto apt = std::make_unique<AptProvider>();
