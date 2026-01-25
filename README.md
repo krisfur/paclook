@@ -10,8 +10,12 @@ A universal interactive package CLI search tool.
 - **yay** - AUR helper (official repos + AUR)
 - **pacman** - Official Arch Linux repos
 - **xbps** - Void Linux package manager
+- **apt** - Debian/Ubuntu package manager
+- **dnf** - Fedora/RHEL package manager
+- apk - Alpine Linux package manager
+ 
 
-More providers (apt, dnf, homebrew, etc.) can be added easily.
+More providers (homebrew, etc.) can be added easily.
 
 ## Building from source
 
@@ -49,8 +53,23 @@ make -j$(nproc)
 
 ## Testing with Docker
 
+First install docker for your specific machine, on Arch:
+
 ```bash
-./docker/test.sh void    # Test on Void Linux
+sudo pacman -S docker
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+newgrp docker  # or logout/login for group to take effect
+```
+
+Then run the docker testing scripts to start an interactive session with `paclook` built from source:
+
+```bash
+./docker/test.sh void      # Void Linux (xbps)
+./docker/test.sh arch      # Arch Linux (yay, pacman)
+./docker/test.sh ubuntu    # Ubuntu (apt)
+./docker/test.sh fedora    # Fedora (dnf)
+./docker/test.sh alpine    # Alpine (apk)
 ```
 
 ## Adding New Providers

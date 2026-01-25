@@ -1,6 +1,6 @@
 FROM fedora:latest
 
-RUN dnf install -y gcc-c++ cmake make sudo && \
+RUN dnf install -y gcc-c++ cmake make sudo libstdc++-static && \
     dnf clean all
 
 WORKDIR /paclook

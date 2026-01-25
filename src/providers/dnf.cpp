@@ -72,9 +72,10 @@ SearchResult DnfProvider::search(const std::string& query) const {
         }
     }
 
-    // dnf search output: name.arch : description
-    // Use --quiet to reduce noise
-    std::string cmd = "dnf search --quiet '" + escaped_query + "' 2>/dev/null";
+    // dnf search output format:
+    // " package-name.arch   Description text here"
+    // Lines start with space, name.arch followed by spaces, then description
+    std::string cmd = "dnf search '" + escaped_query + "' 2>/dev/null";
     std::string output = exec_command(cmd);
 
     if (output.empty()) {
@@ -86,33 +87,44 @@ SearchResult DnfProvider::search(const std::string& query) const {
 
     std::istringstream stream(output);
     std::string line;
-    bool in_results = false;
 
     while (std::getline(stream, line)) {
         if (line.empty()) continue;
 
-        // Skip header lines like "=== Name Matched: xxx ==="
-        if (line.find("===") != std::string::npos) {
-            in_results = true;
-            continue;
+        // Skip header/info lines (don't start with space or contain specific patterns)
+        if (line[0] != ' ') continue;
+        if (line.find("Matched fields:") != std::string::npos) continue;
+        if (line.find("Updating") != std::string::npos) continue;
+        if (line.find("Repositories") != std::string::npos) continue;
+
+        // Trim leading space
+        size_t start = line.find_first_not_of(' ');
+        if (start == std::string::npos) continue;
+        line = line.substr(start);
+
+        // Format: "name.arch   description" (multiple spaces between)
+        // Find the .arch part, then look for multiple spaces after it
+        size_t dot = line.find('.');
+        if (dot == std::string::npos) continue;
+
+        // Find where the arch ends (next space after the dot)
+        size_t arch_end = line.find(' ', dot);
+        if (arch_end == std::string::npos) continue;
+
+        std::string name_arch = line.substr(0, arch_end);
+
+        // Find description (skip whitespace)
+        size_t desc_start = line.find_first_not_of(' ', arch_end);
+        std::string description;
+        if (desc_start != std::string::npos) {
+            description = line.substr(desc_start);
         }
-
-        if (!in_results && line.find(" : ") == std::string::npos) {
-            continue;
-        }
-
-        // Format: name.arch : description
-        size_t sep = line.find(" : ");
-        if (sep == std::string::npos) continue;
-
-        std::string name_arch = line.substr(0, sep);
-        std::string description = line.substr(sep + 3);
 
         // Extract name (remove .arch suffix)
         Package pkg;
-        size_t dot = name_arch.rfind('.');
-        if (dot != std::string::npos) {
-            pkg.name = name_arch.substr(0, dot);
+        size_t last_dot = name_arch.rfind('.');
+        if (last_dot != std::string::npos) {
+            pkg.name = name_arch.substr(0, last_dot);
         } else {
             pkg.name = name_arch;
         }
