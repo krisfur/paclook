@@ -1,0 +1,160 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    name: Build Linux x86_64
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+
+      - name: Build Application (dynamic)
+        run: |
+          mkdir build && cd build
+          cmake ..
+          make -j$(nproc)
+          mv paclook paclook-linux-x86_64
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paclook-linux-x86_64
+          path: build/paclook-linux-x86_64
+
+  build-linux-static:
+    name: Build Linux x86_64 (static musl)
+    runs-on: ubuntu-22.04
+    container:
+      image: alpine:latest
+
+    steps:
+      - name: Install Dependencies
+        run: |
+          apk add --no-cache build-base cmake git
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Application (static musl)
+        run: |
+          mkdir build && cd build
+          cmake -DSTATIC_LIBC=ON ..
+          make -j$(nproc)
+          mv paclook paclook-linux-x86_64-static
+
+      - name: Upload Linux Static Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paclook-linux-x86_64-static
+          path: build/paclook-linux-x86_64-static
+
+  build-macos-x86:
+    name: Build macOS x86_64
+    runs-on: macos-13
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Application
+        run: |
+          mkdir build && cd build
+          cmake ..
+          make -j$(sysctl -n hw.ncpu)
+          mv paclook paclook-macos-x86_64
+
+      - name: Upload macOS x86_64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paclook-macos-x86_64
+          path: build/paclook-macos-x86_64
+
+  build-macos-arm:
+    name: Build macOS ARM64
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Application
+        run: |
+          mkdir build && cd build
+          cmake ..
+          make -j$(sysctl -n hw.ncpu)
+          mv paclook paclook-macos-arm64
+
+      - name: Upload macOS ARM64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paclook-macos-arm64
+          path: build/paclook-macos-arm64
+
+  release:
+    name: Create Release
+    needs: [build-linux, build-linux-static, build-macos-x86, build-macos-arm]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package Release
+        run: |
+          VERSION="${{ github.ref_name }}"
+
+          # Linux dynamic
+          mkdir -p "paclook-${VERSION}-linux-x86_64"
+          cp artifacts/paclook-linux-x86_64/paclook-linux-x86_64 "paclook-${VERSION}-linux-x86_64/paclook"
+          chmod +x "paclook-${VERSION}-linux-x86_64/paclook"
+          cp README.md LICENSE* "paclook-${VERSION}-linux-x86_64/" 2>/dev/null || true
+          tar -czvf "paclook-${VERSION}-linux-x86_64.tar.gz" "paclook-${VERSION}-linux-x86_64"
+
+          # Linux static
+          mkdir -p "paclook-${VERSION}-linux-x86_64-static"
+          cp artifacts/paclook-linux-x86_64-static/paclook-linux-x86_64-static "paclook-${VERSION}-linux-x86_64-static/paclook"
+          chmod +x "paclook-${VERSION}-linux-x86_64-static/paclook"
+          cp README.md LICENSE* "paclook-${VERSION}-linux-x86_64-static/" 2>/dev/null || true
+          tar -czvf "paclook-${VERSION}-linux-x86_64-static.tar.gz" "paclook-${VERSION}-linux-x86_64-static"
+
+          # macOS x86_64
+          mkdir -p "paclook-${VERSION}-macos-x86_64"
+          cp artifacts/paclook-macos-x86_64/paclook-macos-x86_64 "paclook-${VERSION}-macos-x86_64/paclook"
+          chmod +x "paclook-${VERSION}-macos-x86_64/paclook"
+          cp README.md LICENSE* "paclook-${VERSION}-macos-x86_64/" 2>/dev/null || true
+          tar -czvf "paclook-${VERSION}-macos-x86_64.tar.gz" "paclook-${VERSION}-macos-x86_64"
+
+          # macOS ARM64
+          mkdir -p "paclook-${VERSION}-macos-arm64"
+          cp artifacts/paclook-macos-arm64/paclook-macos-arm64 "paclook-${VERSION}-macos-arm64/paclook"
+          chmod +x "paclook-${VERSION}-macos-arm64/paclook"
+          cp README.md LICENSE* "paclook-${VERSION}-macos-arm64/" 2>/dev/null || true
+          tar -czvf "paclook-${VERSION}-macos-arm64.tar.gz" "paclook-${VERSION}-macos-arm64"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            *.tar.gz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
