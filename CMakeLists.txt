@@ -26,6 +26,7 @@ set(SOURCES
     src/providers/apt.cpp
     src/providers/dnf.cpp
     src/providers/apk.cpp
+    src/providers/zypper.cpp
     src/providers/brew.cpp
 )
 

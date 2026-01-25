@@ -6,15 +6,16 @@ A universal interactive package CLI search tool.
 
 ## Supported Providers
 
-- **paru** - AUR helper (official repos + AUR)
-- **yay** - AUR helper (official repos + AUR)
-- **pacman** - Official Arch Linux repos
-- **xbps** - Void Linux package manager
-- **apt** - Debian/Ubuntu package manager
-- **dnf** - Fedora/RHEL package manager
 - **apk** - Alpine Linux package manager
+- **apt** - Debian/Ubuntu package manager
 - **brew** - Homebrew (macOS/Linux)
- 
+- **dnf** - Fedora/RHEL package manager
+- **pacman** - Official Arch Linux repos
+- **paru** - AUR helper (official repos + AUR)
+- **xbps** - Void Linux package manager
+- **yay** - AUR helper (official repos + AUR)
+- **zypper** - openSUSE package manager
+
 
 More providers can be added in a modular manner.
 
@@ -66,11 +67,13 @@ newgrp docker  # or logout/login for group to take effect
 Then run the docker testing scripts to start an interactive session with `paclook` built from source:
 
 ```bash
-./docker/test.sh void      # Void Linux (xbps)
-./docker/test.sh arch      # Arch Linux (yay, pacman)
-./docker/test.sh ubuntu    # Ubuntu (apt)
-./docker/test.sh fedora    # Fedora (dnf)
 ./docker/test.sh alpine    # Alpine (apk)
+./docker/test.sh arch      # Arch Linux (pacman, paru, yay)
+./docker/test.sh fedora    # Fedora (dnf)
+./docker/test.sh homebrew  # Linuxbrew (brew)
+./docker/test.sh opensuse  # openSUSE (zypper)
+./docker/test.sh ubuntu    # Ubuntu (apt)
+./docker/test.sh void      # Void Linux (xbps)
 ```
 
 ## Adding New Providers

@@ -1,0 +1,14 @@
+FROM opensuse/tumbleweed:latest
+
+RUN zypper --non-interactive install gcc-c++ cmake make sudo && \
+    zypper clean --all
+
+WORKDIR /paclook
+COPY CMakeLists.txt .
+COPY src/ src/
+
+RUN mkdir build && cd build && \
+    cmake .. && \
+    make -j$(nproc)
+
+CMD ["/bin/bash"]

@@ -11,14 +11,15 @@ void print_help(const char* program_name) {
     printf("  -h, --help              Show this help message\n");
     printf("  -v, --version           Show version\n\n");
     printf("Supported providers:\n");
-    printf("  paru      - AUR helper (includes official repos + AUR)\n");
-    printf("  yay       - AUR helper (includes official repos + AUR)\n");
-    printf("  pacman    - Official Arch Linux repos only\n");
-    printf("  xbps      - Void Linux package manager\n");
-    printf("  apt       - Debian/Ubuntu package manager\n");
-    printf("  dnf       - Fedora/RHEL package manager\n");
     printf("  apk       - Alpine Linux package manager\n");
-    printf("  brew      - Homebrew (macOS/Linux)\n\n");
+    printf("  apt       - Debian/Ubuntu package manager\n");
+    printf("  brew      - Homebrew (macOS/Linux)\n");
+    printf("  dnf       - Fedora/RHEL package manager\n");
+    printf("  pacman    - Official Arch Linux repos only\n");
+    printf("  paru      - AUR helper (includes official repos + AUR)\n");
+    printf("  xbps      - Void Linux package manager\n");
+    printf("  yay       - AUR helper (includes official repos + AUR)\n");
+    printf("  zypper    - openSUSE package manager\n\n");
     printf("Controls:\n");
     printf("  Type       - Search for packages\n");
     printf("  Up/Down    - Navigate results\n");
@@ -29,7 +30,7 @@ void print_help(const char* program_name) {
 }
 
 void print_version() {
-    printf("paclook version 0.7.1\n");
+    printf("paclook version 0.8.0\n");
 }
 
 void list_providers() {
