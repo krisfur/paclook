@@ -5,13 +5,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Static linking for portability
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+# Static linking for portability (Linux only, not supported on macOS)
+if(NOT APPLE)
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 
-# Option for full static linking (including libc)
-option(STATIC_LIBC "Statically link libc (requires musl or static glibc)" OFF)
-if(STATIC_LIBC)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+    # Option for full static linking (including libc)
+    option(STATIC_LIBC "Statically link libc (requires musl or static glibc)" OFF)
+    if(STATIC_LIBC)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+    endif()
 endif()
 
 # Source files
