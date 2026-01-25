@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <cstdio>
-#include <cstring>
 
 namespace paclook {
 
