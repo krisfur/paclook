@@ -5,6 +5,7 @@ A universal interactive package CLI search tool.
 ## Supported Providers
 
 - **paru** - AUR helper (official repos + AUR)
+- **yay** - AUR helper (official repos + AUR)
 - **pacman** - Official Arch Linux repos
 
 More providers (apt, dnf, homebrew, etc.) can be added easily.

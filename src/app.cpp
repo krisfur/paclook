@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include "providers/paru.hpp"
+#include "providers/yay.hpp"
 #include "providers/pacman.hpp"
 #include <algorithm>
 #include <sstream>
@@ -10,6 +11,8 @@ namespace paclook {
 ProviderPtr create_provider(const std::string& name) {
     if (name == "paru") {
         return std::make_unique<ParuProvider>();
+    } else if (name == "yay") {
+        return std::make_unique<YayProvider>();
     } else if (name == "pacman") {
         return std::make_unique<PacmanProvider>();
     }
@@ -23,6 +26,11 @@ std::vector<std::string> get_available_providers() {
     auto paru = std::make_unique<ParuProvider>();
     if (paru->is_available()) {
         available.push_back("paru");
+    }
+
+    auto yay = std::make_unique<YayProvider>();
+    if (yay->is_available()) {
+        available.push_back("yay");
     }
 
     auto pacman = std::make_unique<PacmanProvider>();
@@ -166,6 +174,9 @@ void App::draw() {
         output << "         " << truncate(pkg.description, DESC_MAX_LEN);
         output << Terminal::RESET << "\033[K\r\n";
     }
+
+    // Provider indicator + status message
+    output << Terminal::DIM << "[" << provider_->name() << "]" << Terminal::RESET << " ";
 
     // Status message with color based on content
     if (status_message_.find("Found") != std::string::npos) {

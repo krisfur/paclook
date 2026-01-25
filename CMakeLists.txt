@@ -20,6 +20,7 @@ set(SOURCES
     src/app.cpp
     src/terminal.cpp
     src/providers/paru.cpp
+    src/providers/yay.cpp
     src/providers/pacman.cpp
 )
 

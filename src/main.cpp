@@ -12,6 +12,7 @@ void print_help(const char* program_name) {
     printf("  -v, --version           Show version\n\n");
     printf("Supported providers:\n");
     printf("  paru      - AUR helper (includes official repos + AUR)\n");
+    printf("  yay       - AUR helper (includes official repos + AUR)\n");
     printf("  pacman    - Official Arch Linux repos only\n\n");
     printf("Controls:\n");
     printf("  Type       - Search for packages\n");
