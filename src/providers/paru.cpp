@@ -1,4 +1,5 @@
 #include "providers/paru.hpp"
+#include "util.hpp"
 #include <array>
 #include <cstdio>
 #include <sstream>
@@ -103,6 +104,67 @@ SearchResult ParuProvider::search(const std::string& query) const {
         }
     }
 
+    // First, check if an exact package exists (search often misses exact matches)
+    Package exact_match;
+    bool has_exact = false;
+    auto info_result = exec_command_full("paru -Si '" + escaped_query + "' 2>/dev/null");
+    if (info_result.exit_code == 0 && !info_result.stdout_output.empty()) {
+        // Parse paru -Si output format:
+        // Repository      : extra
+        // Name            : go
+        // Version         : 2:1.21.4-1
+        // Description     : Core compiler tools...
+        std::istringstream info_stream(info_result.stdout_output);
+        std::string info_line;
+        while (std::getline(info_stream, info_line)) {
+            if (info_line.find("Repository") == 0) {
+                size_t colon = info_line.find(':');
+                if (colon != std::string::npos) {
+                    exact_match.source = info_line.substr(colon + 1);
+                    // Trim whitespace
+                    size_t start = exact_match.source.find_first_not_of(" \t");
+                    if (start != std::string::npos) {
+                        exact_match.source = exact_match.source.substr(start);
+                    }
+                }
+            } else if (info_line.find("Name") == 0) {
+                size_t colon = info_line.find(':');
+                if (colon != std::string::npos) {
+                    exact_match.name = info_line.substr(colon + 1);
+                    size_t start = exact_match.name.find_first_not_of(" \t");
+                    if (start != std::string::npos) {
+                        exact_match.name = exact_match.name.substr(start);
+                    }
+                }
+            } else if (info_line.find("Version") == 0) {
+                size_t colon = info_line.find(':');
+                if (colon != std::string::npos) {
+                    exact_match.version = info_line.substr(colon + 1);
+                    size_t start = exact_match.version.find_first_not_of(" \t");
+                    if (start != std::string::npos) {
+                        exact_match.version = exact_match.version.substr(start);
+                    }
+                }
+            } else if (info_line.find("Description") == 0) {
+                size_t colon = info_line.find(':');
+                if (colon != std::string::npos) {
+                    exact_match.description = info_line.substr(colon + 1);
+                    size_t start = exact_match.description.find_first_not_of(" \t");
+                    if (start != std::string::npos) {
+                        exact_match.description = exact_match.description.substr(start);
+                    }
+                }
+            } else if (info_line.find("Install Reason") != std::string::npos ||
+                       info_line.find("Installed") != std::string::npos) {
+                // Package is installed if we see install-related fields
+                exact_match.installed = true;
+            }
+        }
+        if (!exact_match.name.empty()) {
+            has_exact = true;
+        }
+    }
+
     std::string cmd = "paru -Ss '" + escaped_query + "' 2>&1";
     auto exec_result = exec_command_full("paru -Ss '" + escaped_query + "'");
 
@@ -182,6 +244,23 @@ SearchResult ParuProvider::search(const std::string& query) const {
     if (has_package) {
         result.packages.push_back(current);
     }
+
+    // Add exact match at the beginning if found and not already in results
+    if (has_exact) {
+        bool already_exists = false;
+        for (const auto& pkg : result.packages) {
+            if (pkg.name == exact_match.name && pkg.source == exact_match.source) {
+                already_exists = true;
+                break;
+            }
+        }
+        if (!already_exists) {
+            result.packages.insert(result.packages.begin(), exact_match);
+        }
+    }
+
+    // Sort by relevance
+    sort_by_relevance(result.packages, query);
 
     return result;
 }
