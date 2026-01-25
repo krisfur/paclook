@@ -7,6 +7,7 @@ A universal interactive package CLI search tool.
 - **paru** - AUR helper (official repos + AUR)
 - **yay** - AUR helper (official repos + AUR)
 - **pacman** - Official Arch Linux repos
+- **xbps** - Void Linux package manager
 
 More providers (apt, dnf, homebrew, etc.) can be added easily.
 
@@ -43,6 +44,12 @@ make -j$(nproc)
 | Enter | Install selected package |
 | Escape | Clear search |
 | Ctrl+X | Quit |
+
+## Testing with Docker
+
+```bash
+./docker/test.sh void    # Test on Void Linux
+```
 
 ## Adding New Providers
 

@@ -1,0 +1,22 @@
+FROM voidlinux/voidlinux:latest
+
+# Use a working mirror and update
+RUN mkdir -p /etc/xbps.d && \
+    echo "repository=https://repo-fastly.voidlinux.org/current" > /etc/xbps.d/00-repository-main.conf && \
+    xbps-install -Syu xbps && \
+    xbps-install -Syu && \
+    xbps-install -y base-devel cmake sudo
+
+# Create working directory
+WORKDIR /paclook
+
+# Copy source files
+COPY CMakeLists.txt .
+COPY src/ src/
+
+# Build
+RUN mkdir build && cd build && \
+    cmake .. && \
+    make -j$(nproc)
+
+CMD ["/bin/sh"]

@@ -2,6 +2,7 @@
 #include "providers/paru.hpp"
 #include "providers/yay.hpp"
 #include "providers/pacman.hpp"
+#include "providers/xbps.hpp"
 #include <algorithm>
 #include <sstream>
 
@@ -15,6 +16,8 @@ ProviderPtr create_provider(const std::string& name) {
         return std::make_unique<YayProvider>();
     } else if (name == "pacman") {
         return std::make_unique<PacmanProvider>();
+    } else if (name == "xbps") {
+        return std::make_unique<XbpsProvider>();
     }
     return nullptr;
 }
@@ -36,6 +39,11 @@ std::vector<std::string> get_available_providers() {
     auto pacman = std::make_unique<PacmanProvider>();
     if (pacman->is_available()) {
         available.push_back("pacman");
+    }
+
+    auto xbps = std::make_unique<XbpsProvider>();
+    if (xbps->is_available()) {
+        available.push_back("xbps");
     }
 
     return available;

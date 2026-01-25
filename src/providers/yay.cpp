@@ -101,7 +101,8 @@ SearchResult YayProvider::search(const std::string& query) const {
         }
     }
 
-    auto exec_result = exec_command_full("yay -Ss '" + escaped_query + "'");
+    // Use --topdown to show repo packages first (like paru)
+    auto exec_result = exec_command_full("yay --topdown -Ss '" + escaped_query + "'");
 
     // Check stderr for yay-specific errors
     if (exec_result.stderr_output.find("Query arg too small") != std::string::npos ||

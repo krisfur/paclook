@@ -22,6 +22,7 @@ set(SOURCES
     src/providers/paru.cpp
     src/providers/yay.cpp
     src/providers/pacman.cpp
+    src/providers/xbps.cpp
 )
 
 add_executable(paclook ${SOURCES})
