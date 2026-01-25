@@ -86,9 +86,59 @@ SearchResult BrewProvider::search(const std::string& query) const {
     // Get installed packages for status
     auto installed = get_installed_packages();
 
+    // Track if we found exact match
+    std::string exact_match_name;
+    std::string exact_match_desc;
+
+    // First, check if an exact package exists (brew search often misses exact matches)
+    std::string info_cmd = "brew info '" + escaped_query + "' 2>/dev/null";
+    std::string info_output = exec_command(info_cmd);
+    if (!info_output.empty() && info_output.find("Error:") == std::string::npos) {
+        // Parse first line for name and description
+        // Format: "==> name: stable X.Y.Z (bottled)"
+        std::istringstream info_stream(info_output);
+        std::string first_line;
+        if (std::getline(info_stream, first_line) && !first_line.empty()) {
+            // Strip "==> " prefix if present
+            if (first_line.find("==> ") == 0) {
+                first_line = first_line.substr(4);
+            }
+            size_t colon = first_line.find(": ");
+            if (colon != std::string::npos) {
+                exact_match_name = first_line.substr(0, colon);
+                // Description is on a later line, version info is after colon
+                // Skip the version line, try to get actual description from line 2+
+            }
+        }
+        // Try to get description from subsequent lines (skip empty and version lines)
+        std::string desc_line;
+        while (std::getline(info_stream, desc_line)) {
+            // Skip empty lines and lines starting with common non-description prefixes
+            if (desc_line.empty()) continue;
+            if (desc_line[0] == '=') continue;
+            if (desc_line.find("http") == 0) continue;
+            if (desc_line.find("Installed") == 0) continue;
+            if (desc_line.find("From:") == 0) continue;
+            if (desc_line.find("License:") == 0) continue;
+            // This should be the description
+            exact_match_desc = desc_line;
+            break;
+        }
+    }
+
     // brew search --desc returns: "name: description"
     std::string cmd = "brew search --desc '" + escaped_query + "' 2>/dev/null";
     std::string output = exec_command(cmd);
+
+    // Add exact match first if found and not empty
+    if (!exact_match_name.empty()) {
+        Package pkg;
+        pkg.name = exact_match_name;
+        pkg.description = exact_match_desc;
+        pkg.source = "formula";
+        pkg.installed = (installed.find(pkg.name) != installed.end());
+        result.packages.push_back(pkg);
+    }
 
     if (output.empty()) {
         return result;
@@ -133,11 +183,14 @@ SearchResult BrewProvider::search(const std::string& query) const {
 
         if (pkg.name.empty()) continue;
 
+        // Skip if this is the exact match we already added
+        if (pkg.name == exact_match_name) continue;
+
         pkg.installed = (installed.find(pkg.name) != installed.end());
         result.packages.push_back(pkg);
     }
 
-    // Sort by relevance
+    // Sort by relevance (exact match already at top will stay there due to sort stability)
     sort_by_relevance(result.packages, query);
 
     return result;

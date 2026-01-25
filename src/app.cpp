@@ -58,9 +58,9 @@ std::vector<std::string> get_available_providers() {
         available.push_back("xbps");
     }
 
-    auto apt = std::make_unique<AptProvider>();
-    if (apt->is_available()) {
-        available.push_back("apt");
+    auto brew = std::make_unique<BrewProvider>();
+    if (brew->is_available()) {
+        available.push_back("brew");
     }
 
     auto dnf = std::make_unique<DnfProvider>();
@@ -73,9 +73,9 @@ std::vector<std::string> get_available_providers() {
         available.push_back("apk");
     }
 
-    auto brew = std::make_unique<BrewProvider>();
-    if (brew->is_available()) {
-        available.push_back("brew");
+    auto apt = std::make_unique<AptProvider>();
+    if (apt->is_available()) {
+        available.push_back("apt");
     }
 
     return available;
