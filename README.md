@@ -2,6 +2,8 @@
 
 A universal interactive package CLI search tool.
 
+![screenshot](./screenshot.png)
+
 ## Supported Providers
 
 - **paru** - AUR helper (official repos + AUR)
