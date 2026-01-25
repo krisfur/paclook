@@ -1,7 +1,6 @@
 #include "providers/paru.hpp"
 #include <array>
 #include <cstdio>
-#include <memory>
 #include <sstream>
 #include <cstring>
 #include <unistd.h>
