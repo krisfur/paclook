@@ -12,7 +12,7 @@ A universal interactive package CLI search tool.
 - **xbps** - Void Linux package manager
 - **apt** - Debian/Ubuntu package manager
 - **dnf** - Fedora/RHEL package manager
-- apk - Alpine Linux package manager
+- **apk** - Alpine Linux package manager
  
 
 More providers (homebrew, etc.) can be added easily.
