@@ -1,0 +1,21 @@
+FROM homebrew/brew:latest
+
+USER root
+
+# Install build dependencies
+RUN brew install cmake
+
+# Create and setup build directory
+RUN mkdir -p /paclook && chown linuxbrew:linuxbrew /paclook
+WORKDIR /paclook
+COPY CMakeLists.txt .
+COPY src/ src/
+RUN chown -R linuxbrew:linuxbrew /paclook
+
+USER linuxbrew
+
+RUN mkdir build && cd build && \
+    cmake .. && \
+    make -j$(nproc)
+
+CMD ["/bin/bash"]

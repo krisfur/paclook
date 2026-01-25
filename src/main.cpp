@@ -17,7 +17,8 @@ void print_help(const char* program_name) {
     printf("  xbps      - Void Linux package manager\n");
     printf("  apt       - Debian/Ubuntu package manager\n");
     printf("  dnf       - Fedora/RHEL package manager\n");
-    printf("  apk       - Alpine Linux package manager\n\n");
+    printf("  apk       - Alpine Linux package manager\n");
+    printf("  brew      - Homebrew (macOS/Linux)\n\n");
     printf("Controls:\n");
     printf("  Type       - Search for packages\n");
     printf("  Up/Down    - Navigate results\n");
@@ -28,7 +29,7 @@ void print_help(const char* program_name) {
 }
 
 void print_version() {
-    printf("paclook version 0.6.3\n");
+    printf("paclook version 0.7.0\n");
 }
 
 void list_providers() {

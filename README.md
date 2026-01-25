@@ -13,9 +13,10 @@ A universal interactive package CLI search tool.
 - **apt** - Debian/Ubuntu package manager
 - **dnf** - Fedora/RHEL package manager
 - **apk** - Alpine Linux package manager
+- **brew** - Homebrew (macOS/Linux)
  
 
-More providers (homebrew, etc.) can be added easily.
+More providers can be added in a modular manner.
 
 ## Building from source
 

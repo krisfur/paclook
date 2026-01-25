@@ -6,6 +6,7 @@
 #include "providers/apt.hpp"
 #include "providers/dnf.hpp"
 #include "providers/apk.hpp"
+#include "providers/brew.hpp"
 #include <algorithm>
 #include <sstream>
 
@@ -27,6 +28,8 @@ ProviderPtr create_provider(const std::string& name) {
         return std::make_unique<DnfProvider>();
     } else if (name == "apk") {
         return std::make_unique<ApkProvider>();
+    } else if (name == "brew") {
+        return std::make_unique<BrewProvider>();
     }
     return nullptr;
 }
@@ -68,6 +71,11 @@ std::vector<std::string> get_available_providers() {
     auto apk = std::make_unique<ApkProvider>();
     if (apk->is_available()) {
         available.push_back("apk");
+    }
+
+    auto brew = std::make_unique<BrewProvider>();
+    if (brew->is_available()) {
+        available.push_back("brew");
     }
 
     return available;
