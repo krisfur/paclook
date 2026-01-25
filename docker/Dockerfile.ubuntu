@@ -1,0 +1,17 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y build-essential cmake sudo && \
+    apt-get clean
+
+WORKDIR /paclook
+COPY CMakeLists.txt .
+COPY src/ src/
+
+RUN mkdir build && cd build && \
+    cmake .. && \
+    make -j$(nproc)
+
+CMD ["/bin/bash"]

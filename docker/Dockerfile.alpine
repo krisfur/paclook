@@ -1,0 +1,13 @@
+FROM alpine:latest
+
+RUN apk update && apk add build-base cmake sudo
+
+WORKDIR /paclook
+COPY CMakeLists.txt .
+COPY src/ src/
+
+RUN mkdir build && cd build && \
+    cmake .. && \
+    make -j$(nproc)
+
+CMD ["/bin/sh"]

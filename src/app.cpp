@@ -3,6 +3,9 @@
 #include "providers/yay.hpp"
 #include "providers/pacman.hpp"
 #include "providers/xbps.hpp"
+#include "providers/apt.hpp"
+#include "providers/dnf.hpp"
+#include "providers/apk.hpp"
 #include <algorithm>
 #include <sstream>
 
@@ -18,6 +21,12 @@ ProviderPtr create_provider(const std::string& name) {
         return std::make_unique<PacmanProvider>();
     } else if (name == "xbps") {
         return std::make_unique<XbpsProvider>();
+    } else if (name == "apt") {
+        return std::make_unique<AptProvider>();
+    } else if (name == "dnf") {
+        return std::make_unique<DnfProvider>();
+    } else if (name == "apk") {
+        return std::make_unique<ApkProvider>();
     }
     return nullptr;
 }
@@ -44,6 +53,21 @@ std::vector<std::string> get_available_providers() {
     auto xbps = std::make_unique<XbpsProvider>();
     if (xbps->is_available()) {
         available.push_back("xbps");
+    }
+
+    auto apt = std::make_unique<AptProvider>();
+    if (apt->is_available()) {
+        available.push_back("apt");
+    }
+
+    auto dnf = std::make_unique<DnfProvider>();
+    if (dnf->is_available()) {
+        available.push_back("dnf");
+    }
+
+    auto apk = std::make_unique<ApkProvider>();
+    if (apk->is_available()) {
+        available.push_back("apk");
     }
 
     return available;

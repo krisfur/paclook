@@ -23,6 +23,9 @@ set(SOURCES
     src/providers/yay.cpp
     src/providers/pacman.cpp
     src/providers/xbps.cpp
+    src/providers/apt.cpp
+    src/providers/dnf.cpp
+    src/providers/apk.cpp
 )
 
 add_executable(paclook ${SOURCES})
