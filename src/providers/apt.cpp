@@ -4,6 +4,7 @@
 #include <memory>
 #include <sstream>
 #include <set>
+#include <algorithm>
 
 namespace paclook {
 
@@ -100,6 +101,9 @@ SearchResult AptProvider::search(const std::string& query) const {
 
         result.packages.push_back(pkg);
     }
+
+    // Reverse so later results (often more relevant) appear near search box
+    std::reverse(result.packages.begin(), result.packages.end());
 
     return result;
 }
