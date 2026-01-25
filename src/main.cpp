@@ -31,7 +31,7 @@ void print_help(const char* program_name) {
 }
 
 void print_version() {
-    printf("paclook version 0.9.1\n");
+    printf("paclook version 0.9.2\n");
 }
 
 void list_providers() {
