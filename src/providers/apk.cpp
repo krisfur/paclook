@@ -1,4 +1,5 @@
 #include "providers/apk.hpp"
+#include "util.hpp"
 #include <array>
 #include <cstdio>
 #include <memory>
@@ -120,6 +121,9 @@ SearchResult ApkProvider::search(const std::string& query) const {
 
         result.packages.push_back(pkg);
     }
+
+    // Sort by relevance (exact match, starts with, contains, shorter names first)
+    sort_by_relevance(result.packages, query);
 
     return result;
 }

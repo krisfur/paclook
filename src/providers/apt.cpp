@@ -1,10 +1,10 @@
 #include "providers/apt.hpp"
+#include "util.hpp"
 #include <array>
 #include <cstdio>
 #include <memory>
 #include <sstream>
 #include <set>
-#include <algorithm>
 
 namespace paclook {
 
@@ -102,8 +102,8 @@ SearchResult AptProvider::search(const std::string& query) const {
         result.packages.push_back(pkg);
     }
 
-    // Reverse so later results (often more relevant) appear near search box
-    std::reverse(result.packages.begin(), result.packages.end());
+    // Sort by relevance (exact match, starts with, contains, shorter names first)
+    sort_by_relevance(result.packages, query);
 
     return result;
 }
