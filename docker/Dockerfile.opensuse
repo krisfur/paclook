@@ -1,6 +1,6 @@
 FROM opensuse/tumbleweed:latest
 
-RUN zypper --non-interactive install clang cmake ninja sudo && \
+RUN zypper --non-interactive install clang clang-tools cmake ninja sudo && \
     zypper clean --all
 
 WORKDIR /paclook

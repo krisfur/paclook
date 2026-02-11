@@ -1,6 +1,6 @@
 FROM fedora:latest
 
-RUN dnf install -y clang cmake ninja-build sudo libstdc++-static && \
+RUN dnf install -y clang clang-tools-extra cmake ninja-build sudo libstdc++-static && \
     dnf clean all
 
 WORKDIR /paclook
