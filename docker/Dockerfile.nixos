@@ -5,7 +5,7 @@ RUN mkdir -p /etc/nix && \
     echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 
 # Install build dependencies and bash using nix-env
-RUN nix-env -iA nixpkgs.clang nixpkgs.cmake nixpkgs.ninja nixpkgs.bash
+RUN nix-env -iA nixpkgs.clang nixpkgs.clang-tools nixpkgs.cmake nixpkgs.ninja nixpkgs.bash
 
 WORKDIR /paclook
 COPY CMakeLists.txt .
