@@ -83,9 +83,11 @@ jobs:
 
       - name: Build Universal Binary
         run: |
+          export SDKROOT="$(xcrun --show-sdk-path)"
           cmake -G Ninja -S . -B build \
               -DCMAKE_CXX_COMPILER="$(brew --prefix llvm)/bin/clang++" \
-              -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+              -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+              -DCMAKE_OSX_SYSROOT="$SDKROOT"
           cmake --build build
           mv build/paclook build/paclook-macos-universal
 
