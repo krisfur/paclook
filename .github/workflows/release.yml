@@ -79,12 +79,12 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          brew install cmake ninja llvm@19
+          brew install cmake ninja llvm
 
       - name: Build Universal Binary
         run: |
           export SDKROOT="$(xcrun --show-sdk-path)"
-          LLVM_CXX="$(brew --prefix llvm@19)/bin/clang++"
+          LLVM_CXX="$(brew --prefix llvm)/bin/clang++"
 
           # Build arm64
           cmake -G Ninja -S . -B build-arm64 \
