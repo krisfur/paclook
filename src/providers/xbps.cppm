@@ -1,8 +1,14 @@
-#include "providers/xbps.hpp"
+module;
+
 #include <array>
 #include <cstdio>
 #include <memory>
 #include <sstream>
+#include <string>
+
+export module paclook.providers.xbps;
+
+import paclook.provider;
 
 namespace paclook {
 
@@ -33,6 +39,19 @@ bool command_exists(const std::string& cmd) {
 }
 
 } // anonymous namespace
+
+export class XbpsProvider : public Provider {
+public:
+    std::string name() const override { return "xbps"; }
+    bool is_available() const override;
+    SearchResult search(const std::string& query) const override;
+    std::string install_command(const Package& pkg) const override;
+
+    std::string source_color(const std::string& source) const override {
+        // Void Linux uses a single repo, color by installed status instead
+        return "\033[32m";  // green
+    }
+};
 
 bool XbpsProvider::is_available() const {
     return command_exists("xbps-query");

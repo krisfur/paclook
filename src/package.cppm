@@ -1,9 +1,11 @@
-#pragma once
+module;
 
 #include <string>
 #include <vector>
 
-namespace paclook {
+export module paclook.package;
+
+export namespace paclook {
 
 struct Package {
     std::string name;

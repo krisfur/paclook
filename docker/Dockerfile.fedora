@@ -1,14 +1,13 @@
 FROM fedora:latest
 
-RUN dnf install -y gcc-c++ cmake make sudo libstdc++-static && \
+RUN dnf install -y clang clang-tools-extra cmake ninja-build sudo libstdc++-static && \
     dnf clean all
 
 WORKDIR /paclook
 COPY CMakeLists.txt .
 COPY src/ src/
 
-RUN mkdir build && cd build && \
-    cmake .. && \
-    make -j$(nproc)
+RUN cmake -G Ninja -S . -B build -DCMAKE_CXX_COMPILER=clang++ && \
+    cmake --build build
 
 CMD ["/bin/bash"]

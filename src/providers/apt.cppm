@@ -1,10 +1,16 @@
-#include "providers/apk.hpp"
-#include "util.hpp"
+module;
+
 #include <array>
 #include <cstdio>
 #include <memory>
-#include <sstream>
 #include <set>
+#include <sstream>
+#include <string>
+
+export module paclook.providers.apt;
+
+import paclook.provider;
+import paclook.util;
 
 namespace paclook {
 
@@ -36,7 +42,7 @@ bool command_exists(const std::string& cmd) {
 
 std::set<std::string> get_installed_packages() {
     std::set<std::string> installed;
-    std::string output = exec_command("apk info 2>/dev/null");
+    std::string output = exec_command("dpkg-query -W -f='${Package}\\n' 2>/dev/null");
 
     std::istringstream stream(output);
     std::string line;
@@ -50,11 +56,23 @@ std::set<std::string> get_installed_packages() {
 
 } // anonymous namespace
 
-bool ApkProvider::is_available() const {
-    return command_exists("apk");
+export class AptProvider : public Provider {
+public:
+    std::string name() const override { return "apt"; }
+    bool is_available() const override;
+    SearchResult search(const std::string& query) const override;
+    std::string install_command(const Package& pkg) const override;
+
+    std::string source_color(const std::string& source) const override {
+        return "\033[33m";  // yellow for debian/ubuntu
+    }
+};
+
+bool AptProvider::is_available() const {
+    return command_exists("apt-cache");
 }
 
-SearchResult ApkProvider::search(const std::string& query) const {
+SearchResult AptProvider::search(const std::string& query) const {
     SearchResult result;
 
     if (query.empty()) {
@@ -72,8 +90,8 @@ SearchResult ApkProvider::search(const std::string& query) const {
         }
     }
 
-    // apk search -v returns: package-name-version - description
-    std::string cmd = "apk search -v '" + escaped_query + "' 2>/dev/null";
+    // apt-cache search returns: package-name - description
+    std::string cmd = "apt-cache search '" + escaped_query + "' 2>/dev/null";
     std::string output = exec_command(cmd);
 
     if (output.empty()) {
@@ -89,34 +107,14 @@ SearchResult ApkProvider::search(const std::string& query) const {
     while (std::getline(stream, line)) {
         if (line.empty()) continue;
 
-        // Format: package-name-version - description
+        // Format: package-name - description
         size_t sep = line.find(" - ");
         if (sep == std::string::npos) continue;
 
-        std::string name_version = line.substr(0, sep);
-        std::string description = line.substr(sep + 3);
-
         Package pkg;
-
-        // Extract name and version (version is after last hyphen followed by digit)
-        // e.g., "firefox-esr-115.6.0-r0" -> name="firefox-esr", version="115.6.0-r0"
-        size_t ver_start = std::string::npos;
-        for (size_t i = name_version.size(); i > 0; --i) {
-            if (name_version[i-1] == '-' && i < name_version.size() && isdigit(name_version[i])) {
-                ver_start = i - 1;
-                break;
-            }
-        }
-
-        if (ver_start != std::string::npos) {
-            pkg.name = name_version.substr(0, ver_start);
-            pkg.version = name_version.substr(ver_start + 1);
-        } else {
-            pkg.name = name_version;
-        }
-
-        pkg.description = description;
-        pkg.source = "alpine";
+        pkg.name = line.substr(0, sep);
+        pkg.description = line.substr(sep + 3);
+        pkg.source = "apt";
         pkg.installed = (installed.find(pkg.name) != installed.end());
 
         result.packages.push_back(pkg);
@@ -128,8 +126,8 @@ SearchResult ApkProvider::search(const std::string& query) const {
     return result;
 }
 
-std::string ApkProvider::install_command(const Package& pkg) const {
-    return "sudo apk add " + pkg.name;
+std::string AptProvider::install_command(const Package& pkg) const {
+    return "sudo apt install " + pkg.name;
 }
 
 } // namespace paclook

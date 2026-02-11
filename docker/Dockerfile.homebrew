@@ -3,7 +3,7 @@ FROM homebrew/brew:latest
 USER root
 
 # Install build dependencies
-RUN brew install cmake
+RUN brew install cmake ninja llvm
 
 # Fix linuxbrew permissions for package installation
 RUN chown -R linuxbrew:linuxbrew /home/linuxbrew/.linuxbrew \
@@ -18,8 +18,8 @@ RUN chown -R linuxbrew:linuxbrew /paclook
 
 USER linuxbrew
 
-RUN mkdir build && cd build && \
-    cmake .. && \
-    make -j$(nproc)
+RUN cmake -G Ninja -S . -B build \
+        -DCMAKE_CXX_COMPILER="$(brew --prefix llvm)/bin/clang++" && \
+    cmake --build build
 
 CMD ["/bin/bash"]

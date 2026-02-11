@@ -1,10 +1,16 @@
-#include "providers/brew.hpp"
-#include "util.hpp"
+module;
+
 #include <array>
 #include <cstdio>
 #include <memory>
-#include <sstream>
 #include <set>
+#include <sstream>
+#include <string>
+
+export module paclook.providers.brew;
+
+import paclook.provider;
+import paclook.util;
 
 namespace paclook {
 
@@ -60,6 +66,19 @@ std::set<std::string> get_installed_packages() {
 }
 
 } // anonymous namespace
+
+export class BrewProvider : public Provider {
+public:
+    std::string name() const override { return "brew"; }
+    bool is_available() const override;
+    SearchResult search(const std::string& query) const override;
+    std::string install_command(const Package& pkg) const override;
+
+    std::string source_color(const std::string& source) const override {
+        if (source == "cask") return "\033[35m";  // magenta for casks
+        return "\033[33m";                        // yellow for formulae
+    }
+};
 
 bool BrewProvider::is_available() const {
     return command_exists("brew");

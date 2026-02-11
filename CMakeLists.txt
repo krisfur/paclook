@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30)
 project(paclook VERSION 0.1.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -16,26 +16,25 @@ if(NOT APPLE)
     endif()
 endif()
 
-# Source files
-set(SOURCES
-    src/main.cpp
-    src/app.cpp
-    src/terminal.cpp
-    src/providers/paru.cpp
-    src/providers/yay.cpp
-    src/providers/pacman.cpp
-    src/providers/xbps.cpp
-    src/providers/apt.cpp
-    src/providers/dnf.cpp
-    src/providers/apk.cpp
-    src/providers/zypper.cpp
-    src/providers/nix.cpp
-    src/providers/brew.cpp
+add_executable(paclook src/main.cpp)
+
+target_sources(paclook
+    PUBLIC FILE_SET CXX_MODULES FILES
+        src/package.cppm
+        src/provider.cppm
+        src/util.cppm
+        src/terminal.cppm
+        src/app.cppm
+        src/providers/pacman.cppm
+        src/providers/paru.cppm
+        src/providers/yay.cppm
+        src/providers/apt.cppm
+        src/providers/dnf.cppm
+        src/providers/apk.cppm
+        src/providers/zypper.cppm
+        src/providers/xbps.cppm
+        src/providers/nix.cppm
+        src/providers/brew.cppm
 )
 
-add_executable(paclook ${SOURCES})
-
-target_include_directories(paclook PRIVATE ${CMAKE_SOURCE_DIR}/src)
-
-# Installation
 install(TARGETS paclook RUNTIME DESTINATION bin)

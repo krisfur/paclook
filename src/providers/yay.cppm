@@ -1,11 +1,18 @@
-#include "providers/yay.hpp"
-#include "util.hpp"
+module;
+
 #include <array>
 #include <cstdio>
-#include <sstream>
 #include <cstring>
+#include <memory>
+#include <sstream>
+#include <string>
 #include <unistd.h>
 #include <sys/wait.h>
+
+export module paclook.providers.yay;
+
+import paclook.provider;
+import paclook.util;
 
 namespace paclook {
 
@@ -78,6 +85,14 @@ bool command_exists(const std::string& cmd) {
 }
 
 } // anonymous namespace
+
+export class YayProvider : public Provider {
+public:
+    std::string name() const override { return "yay"; }
+    bool is_available() const override;
+    SearchResult search(const std::string& query) const override;
+    std::string install_command(const Package& pkg) const override;
+};
 
 bool YayProvider::is_available() const {
     return command_exists("yay");
