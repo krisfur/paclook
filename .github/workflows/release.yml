@@ -84,18 +84,31 @@ jobs:
       - name: Build Universal Binary
         run: |
           export SDKROOT="$(xcrun --show-sdk-path)"
-          cmake -G Ninja -S . -B build \
-              -DCMAKE_CXX_COMPILER="$(brew --prefix llvm)/bin/clang++" \
-              -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+          LLVM_CXX="$(brew --prefix llvm)/bin/clang++"
+
+          # Build arm64
+          cmake -G Ninja -S . -B build-arm64 \
+              -DCMAKE_CXX_COMPILER="$LLVM_CXX" \
+              -DCMAKE_OSX_ARCHITECTURES=arm64 \
               -DCMAKE_OSX_SYSROOT="$SDKROOT"
-          cmake --build build
-          mv build/paclook build/paclook-macos-universal
+          cmake --build build-arm64
+
+          # Build x86_64
+          cmake -G Ninja -S . -B build-x86_64 \
+              -DCMAKE_CXX_COMPILER="$LLVM_CXX" \
+              -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+              -DCMAKE_OSX_SYSROOT="$SDKROOT"
+          cmake --build build-x86_64
+
+          # Combine into universal binary
+          lipo -create build-arm64/paclook build-x86_64/paclook \
+              -output paclook-macos-universal
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
           name: paclook-macos-universal
-          path: build/paclook-macos-universal
+          path: paclook-macos-universal
 
   release:
     name: Create Release
