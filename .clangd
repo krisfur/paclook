@@ -7,11 +7,12 @@ CompileFlags:
     - "-fimplicit-module-maps"
   Remove:
     - "-fmodule-mapper=*"
+    - "-fmodule-file=*"
     - "-fdeps-format=*"
     - "-fmodules-ts"
 
 Diagnostics:
-  Suppress: ["module_not_found"]
+  Suppress: ["module_not_found", "module_file_mismatch"]
 
 Index:
   Background: Build
