@@ -24,16 +24,21 @@ More providers can be added in a modular manner.
 
 ## Building from source
 
+Requires **clang++** (C++26 modules support), **CMake >= 4.2.3**, and **Ninja**.
+
 ```bash
-mkdir build && cd build
-cmake ..
-make -j$(nproc)
+cmake -G Ninja -S . -B build \
+    -DCMAKE_CXX_COMPILER=clang++ \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --build build
 ```
 
 For static linking (portable binary):
 ```bash
-cmake -DSTATIC_LIBC=ON ..
-make -j$(nproc)
+cmake -G Ninja -S . -B build \
+    -DCMAKE_CXX_COMPILER=clang++ \
+    -DSTATIC_LIBC=ON
+cmake --build build
 ```
 
 ## Usage
@@ -82,7 +87,8 @@ Then run the docker testing scripts to start an interactive session with `pacloo
 
 ## Adding New Providers
 
-1. Create `src/providers/yourprovider.hpp` and `.cpp`
-2. Inherit from `Provider` base class
+1. Create `src/providers/yourprovider.cppm` as a module (`export module paclook.providers.yourprovider;`)
+2. Import `paclook.provider` (and `paclook.util` if you need `sort_by_relevance`)
 3. Implement: `name()`, `is_available()`, `search()`, `install_command()`
-4. Register in `app.cpp`: `create_provider()` and `get_available_providers()`
+4. Register in `src/app.cppm`: `create_provider()` and `get_available_providers()`
+5. Add the `.cppm` file to the `FILE_SET CXX_MODULES` list in `CMakeLists.txt`

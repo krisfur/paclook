@@ -5,7 +5,7 @@ RUN mkdir -p /etc/xbps.d && \
     echo "repository=https://repo-fastly.voidlinux.org/current" > /etc/xbps.d/00-repository-main.conf && \
     xbps-install -Syu xbps && \
     xbps-install -Syu && \
-    xbps-install -y base-devel cmake sudo
+    xbps-install -y base-devel clang cmake ninja sudo
 
 # Create working directory
 WORKDIR /paclook
@@ -15,8 +15,7 @@ COPY CMakeLists.txt .
 COPY src/ src/
 
 # Build
-RUN mkdir build && cd build && \
-    cmake .. && \
-    make -j$(nproc)
+RUN cmake -G Ninja -S . -B build -DCMAKE_CXX_COMPILER=clang++ && \
+    cmake --build build
 
 CMD ["/bin/sh"]

@@ -1,28 +1,82 @@
-#include "providers/pacman.hpp"
-#include "util.hpp"
+module;
+
 #include <array>
 #include <cstdio>
+#include <cstring>
 #include <memory>
 #include <sstream>
+#include <string>
+#include <unistd.h>
+#include <sys/wait.h>
+
+export module paclook.providers.paru;
+
+import paclook.provider;
+import paclook.util;
 
 namespace paclook {
 
 namespace {
 
-std::string exec_command(const std::string& cmd) {
-    std::array<char, 4096> buffer;
-    std::string result;
+// Execute command and capture both stdout and stderr
+struct ExecResult {
+    std::string stdout_output;
+    std::string stderr_output;
+    int exit_code;
+};
 
-    auto pipe_deleter = [](FILE* f) { if (f) pclose(f); };
-    std::unique_ptr<FILE, decltype(pipe_deleter)> pipe(
-        popen(cmd.c_str(), "r"), pipe_deleter);
+ExecResult exec_command_full(const std::string& cmd) {
+    ExecResult result;
+    result.exit_code = -1;
 
-    if (!pipe) {
-        return "";
+    int stdout_pipe[2];
+    int stderr_pipe[2];
+
+    if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
+        return result;
     }
 
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
+    pid_t pid = fork();
+    if (pid < 0) {
+        close(stdout_pipe[0]); close(stdout_pipe[1]);
+        close(stderr_pipe[0]); close(stderr_pipe[1]);
+        return result;
+    }
+
+    if (pid == 0) {
+        // Child process
+        close(stdout_pipe[0]);
+        close(stderr_pipe[0]);
+        dup2(stdout_pipe[1], STDOUT_FILENO);
+        dup2(stderr_pipe[1], STDERR_FILENO);
+        close(stdout_pipe[1]);
+        close(stderr_pipe[1]);
+
+        execl("/bin/sh", "sh", "-c", cmd.c_str(), nullptr);
+        _exit(127);
+    }
+
+    // Parent process
+    close(stdout_pipe[1]);
+    close(stderr_pipe[1]);
+
+    std::array<char, 4096> buffer;
+    ssize_t n;
+
+    while ((n = read(stdout_pipe[0], buffer.data(), buffer.size())) > 0) {
+        result.stdout_output.append(buffer.data(), n);
+    }
+    close(stdout_pipe[0]);
+
+    while ((n = read(stderr_pipe[0], buffer.data(), buffer.size())) > 0) {
+        result.stderr_output.append(buffer.data(), n);
+    }
+    close(stderr_pipe[0]);
+
+    int status;
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status)) {
+        result.exit_code = WEXITSTATUS(status);
     }
 
     return result;
@@ -35,11 +89,19 @@ bool command_exists(const std::string& cmd) {
 
 } // anonymous namespace
 
-bool PacmanProvider::is_available() const {
-    return command_exists("pacman");
+export class ParuProvider : public Provider {
+public:
+    std::string name() const override { return "paru"; }
+    bool is_available() const override;
+    SearchResult search(const std::string& query) const override;
+    std::string install_command(const Package& pkg) const override;
+};
+
+bool ParuProvider::is_available() const {
+    return command_exists("paru");
 }
 
-SearchResult PacmanProvider::search(const std::string& query) const {
+SearchResult ParuProvider::search(const std::string& query) const {
     SearchResult result;
 
     if (query.empty()) {
@@ -60,20 +122,21 @@ SearchResult PacmanProvider::search(const std::string& query) const {
     // First, check if an exact package exists (search often misses exact matches)
     Package exact_match;
     bool has_exact = false;
-    std::string info_output = exec_command("pacman -Si '" + escaped_query + "' 2>/dev/null");
-    if (!info_output.empty() && info_output.find("error:") == std::string::npos) {
-        // Parse pacman -Si output format:
+    auto info_result = exec_command_full("paru -Si '" + escaped_query + "' 2>/dev/null");
+    if (info_result.exit_code == 0 && !info_result.stdout_output.empty()) {
+        // Parse paru -Si output format:
         // Repository      : extra
         // Name            : go
         // Version         : 2:1.21.4-1
         // Description     : Core compiler tools...
-        std::istringstream info_stream(info_output);
+        std::istringstream info_stream(info_result.stdout_output);
         std::string info_line;
         while (std::getline(info_stream, info_line)) {
             if (info_line.find("Repository") == 0) {
                 size_t colon = info_line.find(':');
                 if (colon != std::string::npos) {
                     exact_match.source = info_line.substr(colon + 1);
+                    // Trim whitespace
                     size_t start = exact_match.source.find_first_not_of(" \t");
                     if (start != std::string::npos) {
                         exact_match.source = exact_match.source.substr(start);
@@ -106,29 +169,42 @@ SearchResult PacmanProvider::search(const std::string& query) const {
                         exact_match.description = exact_match.description.substr(start);
                     }
                 }
+            } else if (info_line.find("Install Reason") != std::string::npos ||
+                       info_line.find("Installed") != std::string::npos) {
+                // Package is installed if we see install-related fields
+                exact_match.installed = true;
             }
-        }
-        // Check if installed
-        std::string installed_check = exec_command("pacman -Q '" + escaped_query + "' 2>/dev/null");
-        if (!installed_check.empty() && installed_check.find("error:") == std::string::npos) {
-            exact_match.installed = true;
         }
         if (!exact_match.name.empty()) {
             has_exact = true;
         }
     }
 
-    std::string cmd = "pacman -Ss '" + escaped_query + "' 2>/dev/null";
-    std::string output = exec_command(cmd);
+    std::string cmd = "paru -Ss '" + escaped_query + "' 2>&1";
+    auto exec_result = exec_command_full("paru -Ss '" + escaped_query + "'");
 
-    if (output.empty() && !has_exact) {
+    // Check stderr for paru-specific errors
+    if (exec_result.stderr_output.find("Query arg too small") != std::string::npos ||
+        exec_result.stderr_output.find("Too many package results") != std::string::npos) {
+        result.error = "Too many results! Try a more specific search.";
         return result;
     }
 
-    // Parse pacman output format (same as paru for official repos):
+    // Also check stdout (some versions output errors there)
+    if (exec_result.stdout_output.find("Query arg too small") != std::string::npos ||
+        exec_result.stdout_output.find("Too many package results") != std::string::npos) {
+        result.error = "Too many results! Try a more specific search.";
+        return result;
+    }
+
+    if (exec_result.stdout_output.empty()) {
+        return result;  // Empty results, no error
+    }
+
+    // Parse paru output format:
     // repo/package-name version [installed]
     //     description
-    std::istringstream stream(output);
+    std::istringstream stream(exec_result.stdout_output);
     std::string line;
     Package current;
     bool has_package = false;
@@ -204,8 +280,8 @@ SearchResult PacmanProvider::search(const std::string& query) const {
     return result;
 }
 
-std::string PacmanProvider::install_command(const Package& pkg) const {
-    return "sudo pacman -S " + pkg.name;
+std::string ParuProvider::install_command(const Package& pkg) const {
+    return "paru -S " + pkg.name;
 }
 
 } // namespace paclook

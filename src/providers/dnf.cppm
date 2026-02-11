@@ -1,10 +1,16 @@
-#include "providers/dnf.hpp"
-#include "util.hpp"
+module;
+
 #include <array>
 #include <cstdio>
 #include <memory>
-#include <sstream>
 #include <set>
+#include <sstream>
+#include <string>
+
+export module paclook.providers.dnf;
+
+import paclook.provider;
+import paclook.util;
 
 namespace paclook {
 
@@ -49,6 +55,21 @@ std::set<std::string> get_installed_packages() {
 }
 
 } // anonymous namespace
+
+export class DnfProvider : public Provider {
+public:
+    std::string name() const override { return "dnf"; }
+    bool is_available() const override;
+    SearchResult search(const std::string& query) const override;
+    std::string install_command(const Package& pkg) const override;
+
+    std::string source_color(const std::string& source) const override {
+        if (source == "fedora") return "\033[34m";       // blue
+        if (source == "updates") return "\033[32m";      // green
+        if (source == "@System") return "\033[36m";      // cyan
+        return "\033[33m";                               // yellow
+    }
+};
 
 bool DnfProvider::is_available() const {
     return command_exists("dnf");

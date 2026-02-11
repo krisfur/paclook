@@ -1,14 +1,17 @@
-#pragma once
+module;
 
-#include "package.hpp"
 #include <algorithm>
 #include <string>
 
-namespace paclook {
+export module paclook.util;
+
+import paclook.package;
+
+export namespace paclook {
 
 // Sort packages by relevance to query
 // Priority: exact match > starts with > contains in name > description only
-inline void sort_by_relevance(PackageList& packages, const std::string& query) {
+void sort_by_relevance(PackageList& packages, const std::string& query) {
     std::string query_lower = query;
     std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
 

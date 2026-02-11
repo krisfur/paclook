@@ -1,10 +1,13 @@
-#pragma once
+module;
 
-#include "package.hpp"
 #include <string>
 #include <memory>
 
-namespace paclook {
+export module paclook.provider;
+
+export import paclook.package;
+
+export namespace paclook {
 
 // Result of a search operation
 struct SearchResult {

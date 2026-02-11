@@ -1,6 +1,8 @@
-#include "app.hpp"
+import paclook.app;
+
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 void print_help(const char* program_name) {
     printf("paclook - Universal interactive package search tool\n\n");
