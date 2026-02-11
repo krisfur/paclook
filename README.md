@@ -24,7 +24,7 @@ More providers can be added in a modular manner.
 
 ## Building from source
 
-Requires **clang++** (C++26 modules support), **CMake >= 4.2.3**, and **Ninja**.
+Requires **clang++ >= 19** (C++26 modules support), **CMake >= 3.30**, and **Ninja**.
 
 ```bash
 cmake -G Ninja -S . -B build \

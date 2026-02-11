@@ -2,8 +2,14 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Install clang 19 from LLVM repo (clang 18 in Ubuntu 24.04 has module vtable bugs)
 RUN apt-get update && \
-    apt-get install -y clang clang-tools ninja-build sudo python3 python3-pip && \
+    apt-get install -y wget lsb-release software-properties-common gnupg \
+                       ninja-build sudo python3 python3-pip && \
+    wget -qO /tmp/llvm.sh https://apt.llvm.org/llvm.sh && \
+    chmod +x /tmp/llvm.sh && \
+    /tmp/llvm.sh 19 && \
+    apt-get install -y clang-tools-19 && \
     pip3 install --break-system-packages cmake && \
     apt-get clean
 
@@ -11,7 +17,7 @@ WORKDIR /paclook
 COPY CMakeLists.txt .
 COPY src/ src/
 
-RUN cmake -G Ninja -S . -B build -DCMAKE_CXX_COMPILER=clang++ && \
+RUN cmake -G Ninja -S . -B build -DCMAKE_CXX_COMPILER=clang++-19 && \
     cmake --build build
 
 CMD ["/bin/bash"]
